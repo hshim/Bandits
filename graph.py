@@ -233,7 +233,7 @@ if __name__=="__main__":
     N = 10
     print 'T:', T, 'N:', N, 'probs:', probs
     plt.figure()
-    plt.title('T: %d, N: %d, mu: (%d, %d)' % (T, N, probs[0], probs[1]))
+    plt.title('T: %d, N: %d, mu: (%.2f, %.2f)' % (T, N, probs[0], probs[1]))
     draws = [i for i in range(0, T, 1000)]
     ucb_y = experiment_range(a, UCB(), T, draws, N)
     ucb_line, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
@@ -248,7 +248,7 @@ if __name__=="__main__":
 
 
     plt.figure()
-    plt.title('T: %d, N: %d, mu: (%d, %d)' % (T, N, probs[0], probs[1]))
+    plt.title('T: %d, N: %d, mu: (%.2f, %.2f)' % (T, N, probs[0], probs[1]))
     ucb_line, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
     thompson_line, = plt.plot(draws, t_y, lw=1, label='Thompson', color='r')
     ab01_line, = plt.plot(draws, ab01_y, lw=1, label='A/B 0.01', color='black')
