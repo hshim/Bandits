@@ -50,7 +50,8 @@ def experiment_range(arms, policy, T, draw_points, N=1):
 
     plots = np.zeros_like(draw_points)
     for n in range(N):
-        print n,'of', N,'...'
+        if n % 10 == 0:
+            print n,'of', N,'...'
         this_regret = 0
         policy = copy.deepcopy(policy_backup)
         history = [[0, 0] for _ in range(n_arms)]
@@ -109,12 +110,14 @@ class EpsGreedy(Policy):
 
 
 class UCB(Policy):
+    def __init__(self, delta):
+        self.delta = delta
     def pick(self, n_arms, history):
         for i, [_, n] in enumerate(history):
             if n == 0:
                 return i
         t = sum(n for _, n in history)
-        ucb = [r / n + math.sqrt(math.log(t) / n) for r, n in history]
+        ucb = [r / n + math.sqrt(self.delta * math.log(t) / n) for r, n in history]
         return argmax(ucb)
 
     
@@ -226,31 +229,44 @@ class ABTesting(Policy):
         self.to_pick += survived
         return self.to_pick.pop()
 
-if __name__=="__main__":
-    probs = [0.2, 0.21]
-    a = Arms(probs)
-    T = 10**6
-    N = 10
-    print 'T:', T, 'N:', N, 'probs:', probs
-    plt.figure()
-    plt.title('T: %d, N: %d, mu: (%d, %d)' % (T, N, probs[0], probs[1]))
-    draws = [i for i in range(0, T, 1000)]
-    ucb_y = experiment_range(a, UCB(), T, draws, N)
-    ucb_line, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
-    t_y = experiment_range(a, Thompson(), T, draws, N)
-    thompson_line, = plt.plot(draws, t_y, lw=1, label='Thompson', color='r')
-    ab05_y = experiment_range(a, ABTesting(sig=0.05), T, draws, N)
-    ab05_line, = plt.plot(draws, ab05_y, lw=1, label='A/B 0.05', color='b')
-    ab01_y = experiment_range(a, ABTesting(sig=0.01), T, draws, N)
-    ab01_line, = plt.plot(draws, ab01_y, lw=1, label='A/B 0.01', color='black')
-    plt.legend(handles=[ucb_line, thompson_line, ab01_line, ab05_line])
-    plt.show()
+def main():
+    probs = [
+        [0.2, 0.25, 0.3, 0.35, 0.4],
+        [0.2, 0.2, 0.2, 0.2, 0.3],
+        [0.2, 0.2, 0.2, 0.2, 0.21],
+        [0.2] * 49 + [0.3],
+    ]
+    T = 10**5
+    N = 1000
+    for prob in probs:
+        print 'T:', T, 'N:', N, 'probs:', prob
+        a = Arms(prob)
+        plt.figure()
+        plt.title(('T: %d, N: %d, mu: ' % (T, N) + str(prob))[:60])
+        draws = [i for i in range(0, T, 1000)]
 
+        ucb_y = experiment_range(a, UCB(0.25), T, draws, N)
+        ucb_line, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
+        #ucb_y = experiment_range(a, UCB(1), T, draws, N)
+        #ucb_line1, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
+        t_y = experiment_range(a, Thompson(), T, draws, N)
+        thompson_line, = plt.plot(draws, t_y, lw=1, label='Thompson', color='r')
+        ab01_y = experiment_range(a, ABTesting(sig=0.01), T, draws, N)
+        ab01_line, = plt.plot(draws, ab01_y, lw=1, label='A/B 0.01', color='black')
+        plt.legend(handles=[ucb_line, thompson_line, ab01_line])
+        fn = ('figures/N%d_' % N + str(prob)).replace('.', '').replace(' ', '').replace(',', '')[:25]
+        plt.savefig(fn)
+        print 'Saved', fn
 
-    plt.figure()
-    plt.title('T: %d, N: %d, mu: (%d, %d)' % (T, N, probs[0], probs[1]))
+    #return ucb_y, t_y, ab01_y
+
+if __name__ == '__main__':
+    main()
+    '''
+    plt.title('T: %d, N: %d, mu: (%.2f, %.2f)' % (T, N, probs[0], probs[1]))
     ucb_line, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
     thompson_line, = plt.plot(draws, t_y, lw=1, label='Thompson', color='r')
     ab01_line, = plt.plot(draws, ab01_y, lw=1, label='A/B 0.01', color='black')
     plt.legend(handles=[ucb_line, thompson_line, ab01_line])
     plt.show()
+    '''
