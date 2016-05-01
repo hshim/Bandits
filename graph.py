@@ -262,11 +262,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    '''
-    plt.title('T: %d, N: %d, mu: (%.2f, %.2f)' % (T, N, probs[0], probs[1]))
-    ucb_line, = plt.plot(draws, ucb_y, lw=1, label='UCB', color='g')
-    thompson_line, = plt.plot(draws, t_y, lw=1, label='Thompson', color='r')
-    ab01_line, = plt.plot(draws, ab01_y, lw=1, label='A/B 0.01', color='black')
-    plt.legend(handles=[ucb_line, thompson_line, ab01_line])
-    plt.show()
-    '''
